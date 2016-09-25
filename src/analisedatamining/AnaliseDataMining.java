@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +24,6 @@ public class AnaliseDataMining {
     public static void main(String[] args) throws Exception{
         
         Connection conexao = abreConexaoComOBanco();
-        System.out.println("Opened database successfully");
         limpaTabelasSeJaExistem(conexao);
         criaTabelas(conexao); 
         
@@ -33,35 +31,25 @@ public class AnaliseDataMining {
         List<Conhecido> conhecidos = leiaConhecidosDoXml();
         List<Curtidas> curtidas = leiaCurtidasXml();
         
-        System.out.println("Tamanho: "+curtidas.size());
-        for (Curtidas curtida : curtidas) {
-            System.out.println(curtida);
-        }
+        Set<String> artistasMusicais = pegaArtistasDasCurtidas(curtidas);
         
-        for (Pessoa pessoa : pessoas) {
-            inserePessoa(conexao, pessoa);
-        }
-        
-        for (Conhecido conhecido : conhecidos) {
-            insereConhecido(conexao, conhecido);
-        }
-        
+        inserePessoasNaBase(conexao, pessoas);
+        insereConhecidosNaBase(conexao, conhecidos);
+        insereArtistasMusicaisNaBase(conexao, artistasMusicais);
+        insereCurtidasNaBase(conexao, curtidas);
+    }
+
+    private static Set<String> pegaArtistasDasCurtidas(List<Curtidas> curtidas) {
         Set<String> artistasMusicais = new LinkedHashSet<>();
         for (Curtidas curtida : curtidas) {
             artistasMusicais.add(curtida.bandUri);
         }
-        
-        for (String artista : artistasMusicais) {
-            insereArtistasMusicais(conexao, artista);
-        }
-        
-        for (Curtidas curtida : curtidas) {
-            insereCurtidas(conexao, curtida);
-        }
-        
+        return artistasMusicais;
     }
+    
     private static Connection abreConexaoComOBanco() throws SQLException, ClassNotFoundException{
         Class.forName("org.postgresql.Driver");        
+        System.out.println("Abrindo conexão em "+DadosDaBase.BASE+" "+DadosDaBase.USUARIO+" "+ DadosDaBase.SENHA);
         return DriverManager.getConnection(DadosDaBase.BASE, DadosDaBase.USUARIO, DadosDaBase.SENHA);
     }
     private static void limpaTabelasSeJaExistem(Connection conexao) throws SQLException {        
@@ -76,9 +64,10 @@ public class AnaliseDataMining {
         apagaTabelaSeExiste(conexao, "Pessoas");
     }
     public static void apagaTabelaSeExiste(Connection conexao, String nomeDaTabela) throws SQLException{
-        System.out.println("apagando" + nomeDaTabela);
         Statement dropTable = conexao.createStatement();
-        dropTable.execute("DROP TABLE IF EXISTS "+nomeDaTabela+";");
+        final String query = "DROP TABLE IF EXISTS "+nomeDaTabela+";";
+        System.out.println(query);
+        dropTable.execute(query);
         dropTable.close();
     }
     public static void criaTabelas(Connection c) throws SQLException{
@@ -138,6 +127,7 @@ public class AnaliseDataMining {
     }
     public static void criaTabela(Connection conexao, String nome, String atributos) throws SQLException {
         Statement createTable = conexao.createStatement();
+        System.out.println(createTable);
         createTable.execute("CREATE TABLE "+nome+ " (" +atributos+ ");");
         createTable.close();
     }
@@ -218,36 +208,64 @@ public class AnaliseDataMining {
         }        
         return curtidas;
     }
-    private static void inserePessoa(Connection conexao, Pessoa pessoa) throws SQLException {
+    
+    private static void inserePessoasNaBase(Connection conexao, List<Pessoa> pessoas) throws SQLException {
+        for (Pessoa pessoa : pessoas) {
+            inserePessoaNaBase(conexao, pessoa);
+        }
+    }
+    
+    private static void inserePessoaNaBase(Connection conexao, Pessoa pessoa) throws SQLException {
         PreparedStatement statement = conexao.prepareStatement("INSERT INTO Pessoas (login, nome,cidade ) values (?,?,?)");
         statement.setString(1, pessoa.uri);
         statement.setString(2, pessoa.name);
         statement.setString(3, pessoa.hometown);
-        statement.execute();
-        statement.close();
-    }
-
-    private static void insereConhecido(Connection conexao, Conhecido conhecido) throws SQLException {
-        PreparedStatement statement = conexao.prepareStatement("INSERT INTO Conhecidos (pessoa, conhecido) values (?,?)");
-        statement.setString(1, conhecido.person);
-        statement.setString(2, conhecido.collegue);
-        statement.execute();
-        statement.close();
-    }
-    private static void insereArtistasMusicais(Connection conexao, String artista) throws SQLException {
-        System.out.println("insereArtistasMusicais");
-        PreparedStatement statement = conexao.prepareStatement("INSERT INTO Artista_musical (nome_artistico) values (?)");
-        statement.setString(1, artista);                
         System.out.println(statement.toString());
         statement.execute();
         statement.close();
     }
+
+    private static void insereConhecidosNaBase(Connection conexao, List<Conhecido> conhecidos) throws SQLException {
+        for (Conhecido conhecido : conhecidos) {
+            insereConhecido(conexao, conhecido);
+        }
+    }
+    
+    private static void insereConhecido(Connection conexao, Conhecido conhecido) throws SQLException {
+        PreparedStatement statement = conexao.prepareStatement("INSERT INTO Conhecidos (pessoa, conhecido) values (?,?)");
+        statement.setString(1, conhecido.person);
+        statement.setString(2, conhecido.collegue);
+        System.out.println(statement);
+        statement.execute();
+        statement.close();
+    }
+    
+    private static void insereArtistasMusicaisNaBase(Connection conexao, Set<String> artistas) throws SQLException {
+        for (String artista : artistas) {
+            insereArtistaMusical(conexao, artista);
+        }
+    }
+    
+    private static void insereArtistaMusical(Connection conexao, String artista) throws SQLException {
+        PreparedStatement statement = conexao.prepareStatement("INSERT INTO Artista_musical (nome_artistico) values (?)");
+        statement.setString(1, artista);                
+        System.out.println(statement);
+        statement.execute();
+        statement.close();
+    }
   
-    private static void insereCurtidas(Connection conexao, Curtidas curtida) throws SQLException {
+    private static void insereCurtidasNaBase(Connection conexao, List<Curtidas> curtidas) throws SQLException {
+        for (Curtidas curtida : curtidas) {
+            insereCurtida(conexao, curtida);
+        }
+    }
+    
+    private static void insereCurtida(Connection conexao, Curtidas curtida) throws SQLException {
         PreparedStatement statement = conexao.prepareStatement("INSERT INTO Curtidas (avaliador, avaliado, nota) values (?,?,?)");
         statement.setString(1, curtida.person);      
         statement.setString(2,curtida.bandUri);
-        statement.setInt(3,curtida.rating);            
+        statement.setInt(3,curtida.rating);      
+        System.out.println(statement);
         statement.execute();
         statement.close();
     }
