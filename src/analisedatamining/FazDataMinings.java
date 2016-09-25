@@ -25,7 +25,13 @@ public class FazDataMinings {
         System.out.println("\n Dez maiores Ratings Médios com mair de uma curtida");
         for (String avaliado : dezMaioresRatingsComMaisDeUmaCurtida) {
             System.out.println(avaliado);    
-        }       
+        }    
+        
+        List<String> dezMaisPopulares = pegaDezMaisPopulares(conexao);
+        System.out.println("\n Dez maiores populares");
+        for (String avaliado : dezMaisPopulares) {
+            System.out.println(avaliado);    
+        }  
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -75,6 +81,19 @@ public class FazDataMinings {
             avaliados.add(avaliado);
         }
         pegaDezMaioresRatingsMediosComMaisDeUmaCurtida.close();
+        return avaliados;
+    }
+    
+        public static List<String> pegaDezMaisPopulares(Connection conexao) throws SQLException{
+        String query = "SELECT avaliado, COUNT (nota) AS qntd_curtidas FROM Curtidas GROUP BY avaliado ORDER BY qntd_curtidas DESC LIMIT 10";
+        Statement pegaDezMaisPopulares = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = pegaDezMaisPopulares.executeQuery(query);
+        List<String> avaliados = new ArrayList<>();
+        while (resultadoDoSelectNaBase.next()) {            
+            String avaliado = resultadoDoSelectNaBase.getString("avaliado");           
+            avaliados.add(avaliado);
+        }
+        pegaDezMaisPopulares.close();
         return avaliados;
     }
 }
