@@ -32,6 +32,12 @@ public class FazDataMinings {
         for (String avaliado : dezMaisPopulares) {
             System.out.println(avaliado);    
         }  
+        
+        List<String> dezMaioresVariabilidades = pegaDezMaioresVariabilidades(conexao);
+        System.out.println("\n Dez maiores variabilidades");
+        for (String avaliado : dezMaioresVariabilidades) {
+            System.out.println(avaliado);    
+        }  
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -96,4 +102,20 @@ public class FazDataMinings {
         pegaDezMaisPopulares.close();
         return avaliados;
     }
+        public static List<String> pegaDezMaioresVariabilidades(Connection conexao) throws SQLException{
+        String query = "SELECT avaliado FROM (SELECT avaliado, AVG(nota) AS variabilidade_artista, COUNT(nota) AS qntd_curtidas\n" +
+"FROM Curtidas \n" +
+"GROUP BY avaliado \n" +
+"ORDER BY variabilidade_artista DESC) AS Y WHERE qntd_curtidas >=2 LIMIT 10";
+        Statement pegaDezMaioresVariabilidades = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = pegaDezMaioresVariabilidades.executeQuery(query);
+        List<String> avaliados = new ArrayList<>();
+        while (resultadoDoSelectNaBase.next()) {            
+            String avaliado = resultadoDoSelectNaBase.getString("avaliado");           
+            avaliados.add(avaliado);
+        }
+        pegaDezMaioresVariabilidades.close();
+        return avaliados;
+    }
+        
 }
