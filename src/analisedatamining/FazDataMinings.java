@@ -13,13 +13,19 @@ public class FazDataMinings {
         float media = pegaMedia(conexao);
         float desvioPadrao = pegaDesvioPadrao(conexao);
         System.out.println("Média: "+media + "\n");
+        
         System.out.println("Desvio Padrão: "+desvioPadrao + "\n");
-        List<String> avaliados = pegaDezMaioresRatingsMedios(conexao);
+        
+        List<String> dezMaioresRatings = pegaDezMaioresRatingsMedios(conexao);
         System.out.println("Dez maiores Ratings Médios ");
-        for (String avaliado : avaliados) {
+        for (String avaliado : dezMaioresRatings) {
             System.out.println(avaliado);
-        }
-       
+        }    
+        List<String> dezMaioresRatingsComMaisDeUmaCurtida = pegaDezMaioresRatingsMediosComMaisDeUmaCurtida(conexao);
+        System.out.println("\n Dez maiores Ratings Médios com mair de uma curtida");
+        for (String avaliado : dezMaioresRatingsComMaisDeUmaCurtida) {
+            System.out.println(avaliado);    
+        }       
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -50,13 +56,25 @@ public class FazDataMinings {
         String query = "SELECT avaliado, AVG(nota) AS media_artista FROM Curtidas GROUP BY avaliado ORDER BY media_artista DESC LIMIT 10";
         Statement pegaDezMaioresRatingsMedios = conexao.createStatement();
         ResultSet resultadoDoSelectNaBase = pegaDezMaioresRatingsMedios.executeQuery(query);
-        float desvioPadrao = 0;
         List<String> avaliados = new ArrayList<>();
         while (resultadoDoSelectNaBase.next()) {            
             String avaliado = resultadoDoSelectNaBase.getString("avaliado");           
             avaliados.add(avaliado);
         }
         pegaDezMaioresRatingsMedios.close();
+        return avaliados;
+    }
+    
+    public static List<String> pegaDezMaioresRatingsMediosComMaisDeUmaCurtida(Connection conexao) throws SQLException{
+        String query = "SELECT avaliado FROM (SELECT avaliado, COUNT (nota) AS qntd_curtidas, AVG(NOTA) AS media FROM Curtidas GROUP BY avaliado ORDER BY media DESC ) AS x WHERE qntd_curtidas >=2 LIMIT 10";
+        Statement pegaDezMaioresRatingsMediosComMaisDeUmaCurtida = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = pegaDezMaioresRatingsMediosComMaisDeUmaCurtida.executeQuery(query);
+        List<String> avaliados = new ArrayList<>();
+        while (resultadoDoSelectNaBase.next()) {            
+            String avaliado = resultadoDoSelectNaBase.getString("avaliado");           
+            avaliados.add(avaliado);
+        }
+        pegaDezMaioresRatingsMediosComMaisDeUmaCurtida.close();
         return avaliados;
     }
 }
