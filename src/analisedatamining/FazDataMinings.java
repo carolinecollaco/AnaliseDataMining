@@ -12,8 +12,14 @@ public class FazDataMinings {
     public static void fazDataMinings(Connection conexao) throws SQLException{
         float media = pegaMedia(conexao);
         float desvioPadrao = pegaDesvioPadrao(conexao);
-        System.out.println("Média: "+media);
-        System.out.println("Desvio Padrão: "+desvioPadrao);
+        System.out.println("Média: "+media + "\n");
+        System.out.println("Desvio Padrão: "+desvioPadrao + "\n");
+        List<String> avaliados = pegaDezMaioresRatingsMedios(conexao);
+        System.out.println("Dez maiores Ratings Médios ");
+        for (String avaliado : avaliados) {
+            System.out.println(avaliado);
+        }
+       
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -40,4 +46,17 @@ public class FazDataMinings {
         return desvioPadrao;
     }
     
+    public static List<String> pegaDezMaioresRatingsMedios(Connection conexao) throws SQLException{
+        String query = "SELECT avaliado, AVG(nota) AS media_artista FROM Curtidas GROUP BY avaliado ORDER BY media_artista DESC LIMIT 10";
+        Statement pegaDezMaioresRatingsMedios = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = pegaDezMaioresRatingsMedios.executeQuery(query);
+        float desvioPadrao = 0;
+        List<String> avaliados = new ArrayList<>();
+        while (resultadoDoSelectNaBase.next()) {            
+            String avaliado = resultadoDoSelectNaBase.getString("avaliado");           
+            avaliados.add(avaliado);
+        }
+        pegaDezMaioresRatingsMedios.close();
+        return avaliados;
+    }
 }
