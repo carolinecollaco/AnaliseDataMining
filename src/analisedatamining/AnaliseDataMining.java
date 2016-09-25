@@ -29,7 +29,7 @@ public class AnaliseDataMining {
         
         List<Pessoa> pessoas = leiaPessoasDoXml();
         List<Conhecido> conhecidos = leiaConhecidosDoXml();
-        List<Curtidas> curtidas = leiaCurtidasXml();
+        List<Curtida> curtidas = leiaCurtidasXml();
         
         Set<String> artistasMusicais = pegaArtistasDasCurtidas(curtidas);
         
@@ -37,11 +37,13 @@ public class AnaliseDataMining {
         insereConhecidosNaBase(conexao, conhecidos);
         insereArtistasMusicaisNaBase(conexao, artistasMusicais);
         insereCurtidasNaBase(conexao, curtidas);
+        
+        FazDataMinings.fazDataMinings(conexao);
     }
 
-    private static Set<String> pegaArtistasDasCurtidas(List<Curtidas> curtidas) {
+    private static Set<String> pegaArtistasDasCurtidas(List<Curtida> curtidas) {
         Set<String> artistasMusicais = new LinkedHashSet<>();
-        for (Curtidas curtida : curtidas) {
+        for (Curtida curtida : curtidas) {
             artistasMusicais.add(curtida.bandUri);
         }
         return artistasMusicais;
@@ -182,14 +184,14 @@ public class AnaliseDataMining {
         }        
         return conhecidos;
     }
-    private static List<Curtidas> leiaCurtidasXml() throws SAXException, IOException, ParserConfigurationException {
+    private static List<Curtida> leiaCurtidasXml() throws SAXException, IOException, ParserConfigurationException {
         final InputStream resourceAsStream = AnaliseDataMining.class.getResourceAsStream("music.xml");
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document docACurtida = dBuilder.parse(resourceAsStream);
         NodeList ListACurtida = docACurtida.getElementsByTagName("LikesMusic");
         
-        List<Curtidas> curtidas = new ArrayList<>();
+        List<Curtida> curtidas = new ArrayList<>();
         for (int temp = 0; temp < ListACurtida.getLength(); temp++) {
 
             Node NodeCurtida = ListACurtida.item(temp);
@@ -202,7 +204,7 @@ public class AnaliseDataMining {
                 String bandUriTotal = eElement.getAttribute("bandUri");
                 String bandUri= bandUriTotal.substring(bandUriTotal.lastIndexOf("/") + 1);
                 
-                final Curtidas artistaMusical = new Curtidas (person, rating, bandUri);
+                final Curtida artistaMusical = new Curtida (person, rating, bandUri);
                 curtidas.add(artistaMusical);
             }
         }        
@@ -254,13 +256,13 @@ public class AnaliseDataMining {
         statement.close();
     }
   
-    private static void insereCurtidasNaBase(Connection conexao, List<Curtidas> curtidas) throws SQLException {
-        for (Curtidas curtida : curtidas) {
+    private static void insereCurtidasNaBase(Connection conexao, List<Curtida> curtidas) throws SQLException {
+        for (Curtida curtida : curtidas) {
             insereCurtida(conexao, curtida);
         }
     }
     
-    private static void insereCurtida(Connection conexao, Curtidas curtida) throws SQLException {
+    private static void insereCurtida(Connection conexao, Curtida curtida) throws SQLException {
         PreparedStatement statement = conexao.prepareStatement("INSERT INTO Curtidas (avaliador, avaliado, nota) values (?,?,?)");
         statement.setString(1, curtida.person);      
         statement.setString(2,curtida.bandUri);
