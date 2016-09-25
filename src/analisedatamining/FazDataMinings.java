@@ -38,6 +38,12 @@ public class FazDataMinings {
         for (String avaliado : dezMaioresVariabilidades) {
             System.out.println(avaliado);    
         }  
+        
+        List<String> compartilhamCurtidas = conhecidosQueCompartilhamCurtidas(conexao);
+        System.out.println("\n Compartilham o maior numero de artistas curtidos compartilhados");
+        for (String pessoa : compartilhamCurtidas) {
+            System.out.println(pessoa);    
+        }  
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -104,9 +110,9 @@ public class FazDataMinings {
     }
         public static List<String> pegaDezMaioresVariabilidades(Connection conexao) throws SQLException{
         String query = "SELECT avaliado FROM (SELECT avaliado, AVG(nota) AS variabilidade_artista, COUNT(nota) AS qntd_curtidas\n" +
-"FROM Curtidas \n" +
-"GROUP BY avaliado \n" +
-"ORDER BY variabilidade_artista DESC) AS Y WHERE qntd_curtidas >=2 LIMIT 10";
+        "FROM Curtidas \n" +
+        "GROUP BY avaliado \n" +
+        "ORDER BY variabilidade_artista DESC) AS Y WHERE qntd_curtidas >=2 LIMIT 10";
         Statement pegaDezMaioresVariabilidades = conexao.createStatement();
         ResultSet resultadoDoSelectNaBase = pegaDezMaioresVariabilidades.executeQuery(query);
         List<String> avaliados = new ArrayList<>();
@@ -116,6 +122,29 @@ public class FazDataMinings {
         }
         pegaDezMaioresVariabilidades.close();
         return avaliados;
+    }
+        
+    public static List<String> conhecidosQueCompartilhamCurtidas(Connection conexao) throws SQLException{
+        String query = "SELECT pessoa, conhecido, COUNT(avaliado) as qnt_iguais\n" +
+        "from Conhecidos as conhec, Curtidas as curtidas \n" +
+        "where curtidas.avaliador = conhec.pessoa AND EXISTS (\n" +
+        "	Select * from Curtidas as ccc, Conhecidos as con\n" +
+        "	  where ccc.avaliador = conhec.conhecido \n" +
+        "	    and ccc.avaliado = curtidas.avaliado\n" +
+        "	    and con.pessoa =  conhec.conhecido\n" +
+        "	    and con.conhecido =  conhec.pessoa\n" +
+        ")\n" +
+        "GROUP BY pessoa, conhecido\n" +
+        "ORDER BY qnt_iguais DESC LIMIT 2";
+        Statement conhecidosQueCompartilhamCurtidas = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = conhecidosQueCompartilhamCurtidas.executeQuery(query);
+        List<String> pessoas = new ArrayList<>();
+        while (resultadoDoSelectNaBase.next()) {            
+            String pessoa = resultadoDoSelectNaBase.getString("pessoa");           
+            pessoas.add(pessoa);
+        }
+        conhecidosQueCompartilhamCurtidas.close();
+        return pessoas;
     }
         
 }
