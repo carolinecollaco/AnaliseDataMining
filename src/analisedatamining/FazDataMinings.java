@@ -46,6 +46,7 @@ public class FazDataMinings {
         }  
         
         pessoasQueCurtiramXArtistas(conexao);
+        artistasCurtidorPorXPessoas(conexao);
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -165,5 +166,23 @@ public class FazDataMinings {
             System.out.println(eixoX);
         }
         pessoasQueCurtiramXArtistas.close();
+    }
+    
+    public static void artistasCurtidorPorXPessoas(Connection conexao) throws SQLException{
+        String query = "SELECT qnt_avl, COUNT(qnt_avl) as qnt from (SELECT COUNT(avaliador) AS qnt_avl FROM curtidas GROUP BY avaliado ORDER BY qnt_avl DESC) as x GROUP BY qnt_avl ORDER BY qnt_avl";
+        Statement artistasCurtidorPorXPessoas = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = artistasCurtidorPorXPessoas.executeQuery(query);
+        System.out.println("\n f(x) = número de artistas curtidos por exatamente x pessoas.");
+        System.out.println("...  1  2  3  4  5  6  7");
+        while (resultadoDoSelectNaBase.next()) {            
+            int qnt_avl = resultadoDoSelectNaBase.getInt("qnt_avl");
+            int qnt = resultadoDoSelectNaBase.getInt("qnt"); 
+            String eixoX = String.format("%03d ", qnt);
+            for (int i = 0; i < qnt_avl; i++) {
+                eixoX+= " x ";
+            }
+            System.out.println(eixoX);
+        }
+        artistasCurtidorPorXPessoas.close();
     }
 }
