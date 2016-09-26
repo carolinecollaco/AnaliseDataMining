@@ -47,6 +47,7 @@ public class FazDataMinings {
         
         pessoasQueCurtiramXArtistas(conexao);
         artistasCurtidorPorXPessoas(conexao);
+        histogramaCurtidas(conexao);
     }
     
     public static float pegaMedia(Connection conexao) throws SQLException{
@@ -184,5 +185,22 @@ public class FazDataMinings {
             System.out.println(eixoX);
         }
         artistasCurtidorPorXPessoas.close();
+    }
+    public static void histogramaCurtidas(Connection conexao) throws SQLException{
+        String query = "SELECT nota, count(nota) as qnt_notas from curtidas group by nota order by nota";
+        Statement histogramaCurtidas = conexao.createStatement();
+        ResultSet resultadoDoSelectNaBase = histogramaCurtidas.executeQuery(query);
+        System.out.println("\n f(x) = nota x vezes que a nota aparece");
+        System.out.println("... 10 20 30 40 50 60 70 80 90 100 110");
+        while (resultadoDoSelectNaBase.next()) {            
+            int qnt_notas = resultadoDoSelectNaBase.getInt("qnt_notas");
+            int nota = resultadoDoSelectNaBase.getInt("nota"); 
+            String eixoX = String.format("%03d ", nota);
+            for (int i = 0; i < qnt_notas/10; i++) {
+                eixoX+= " x ";
+            }
+            System.out.println(eixoX);
+        }
+        histogramaCurtidas.close();
     }
 }
