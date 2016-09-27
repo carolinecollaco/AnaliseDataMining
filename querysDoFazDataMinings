@@ -1,0 +1,62 @@
+﻿SELECT * FROM Curtidas
+
+SELECT AVG(nota) AS media FROM Curtidas
+
+SELECT STDDEV(nota) AS desvio_padrao FROM Curtidas
+
+SELECT avaliado, AVG(nota) AS media_artista FROM Curtidas GROUP BY avaliado ORDER BY media_artista DESC LIMIT 10
+
+SELECT avaliado FROM (SELECT avaliado, COUNT (nota) AS qntd_curtidas, AVG(NOTA) AS media 
+FROM Curtidas 
+GROUP BY avaliado 
+ORDER BY media DESC ) AS x WHERE qntd_curtidas >=2 LIMIT 10
+
+SELECT avaliado, COUNT (nota) AS qntd_curtidas FROM Curtidas GROUP BY avaliado ORDER BY qntd_curtidas DESC LIMIT 10
+
+SELECT avaliado FROM (SELECT avaliado, AVG(nota) AS variabilidade_artista, COUNT(nota) AS qntd_curtidas
+FROM Curtidas
+GROUP BY avaliado
+ORDER BY variabilidade_artista DESC) AS Y WHERE qntd_curtidas >=2 LIMIT 10
+
+SELECT pessoa, COUNT(avaliado) AS qnt_iguais FROM Conhecidos AS conhecidosLinha, Curtidas AS curtidasLinha
+WHERE curtidasLinha.avaliador = conhecidosLinha.pessoa 
+	AND EXISTS (
+	               SELECT * FROM Curtidas AS curtidasFor, Conhecidos AS conhecidosFor
+		       WHERE curtidasFor.avaliador = conhecidosLinha.conhecido 
+		       AND curtidasFor.avaliado = curtidasLinha.avaliado
+		       AND conhecidosFor.pessoa =  conhecidosLinha.conhecido
+		       AND conhecidosFor.conhecido =  conhecidosLinha.pessoa
+		  )
+GROUP BY pessoa, conhecido
+ORDER BY qnt_iguais DESC LIMIT 2
+
+
+SELECT  avaliador, COUNT(avaliado) AS qnt_avl FROM curtidas GROUP BY avaliador
+
+ SELECT qnt_avl, count(qnt_avl) AS qnt FROM 
+	(
+		SELECT COUNT(avaliado) AS qnt_avl FROM curtidas 
+		GROUP BY avaliador
+	) AS  x 
+ GROUP BY qnt_avl 
+ ORDER BY qnt_avl
+ 
+
+ SELECT qnt_avl, COUNT(qnt_avl) AS qnt FROM 
+	(
+		SELECT COUNT(avaliador) AS qnt_avl  FROM curtidas 
+		GROUP BY avaliado O
+		RDER BY qnt_avl DESC
+	) AS x 
+ GROUP BY qnt_avl 
+ ORDER BY qnt_avl
+
+ SELECT nota, count(nota) AS qnt_notas FROM curtidas GROUP BY nota ORDER BY nota
+
+
+
+
+
+
+
+ 
